@@ -1,0 +1,30 @@
+---
+- name: create promtail directory
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+  - "{{ promtail_install_dir }}"  
+  - "{{ promtail_config_dir }}"  
+
+- name: unarchive promtail
+  unarchive:
+    remote_src: yes
+    dest: "{{ promtail_install_dir }}"
+    src: "{{ promtail_url }}"
+
+- name: create promtail.config file
+  template:
+    src: config-promtail.yml.j2
+    dest: /etc/promtail/config-promtail.yml
+
+- name: create promtail.service file
+  template:
+    src: promtail.service.j2
+    dest: /etc/systemd/system/promtail.service
+
+- name: started promtail service
+  service:
+    name: promtail
+    state: restarted
+    enabled: yes
