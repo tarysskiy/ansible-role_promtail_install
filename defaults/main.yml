@@ -5,4 +5,4 @@ promtail_config_dir: /etc/promtail
 
 promtail_url: "https://github.com/grafana/loki/releases/download/v1.2.0/promtail-linux-amd64.zip"
 
-grafana_loki: 172.21.0.2
+grafana_loki: IP

@@ -25,3 +25,11 @@ scrape_configs:
       labels:
         job: nginx
         __path__: /var/log/nginx/*log
+    pipeline_stages:
+      - match:
+          selector: '{job="nginx"}'
+          stages:
+          - regex:
+              expression: "(?P<error_code>.*404.*)"
+          - labels:
+              error_code:
