@@ -1,12 +1,66 @@
 server:
+  # HTTP server listen host
+  http_listen_address: {{ ansible_default_ipv4.address }}
+  
+  # HTTP server listen port
   http_listen_port: 9080
+  
+  # grpc_listen_address
+  #grpc_listen_address: <string>
+
+  # gRPC server listen port
   grpc_listen_port: 0
 
+  # Register instrumentation handlers (/metrics, etc.)
+  register_instrumentation: true
+
+  # Timeout for graceful shutdowns
+  graceful_shutdown_timeout: 30s
+
+  # Read timeout for HTTP server
+  http_server_read_timeout: 30s
+
+  # Write timeout for HTTP server
+  http_server_write_timeout: 30s
+
+  # Idle timeout for HTTP server
+  http_server_idle_timeout: 120s
+
+  # Max gRPC message size that can be received
+  grpc_server_max_recv_msg_size: 4194304
+
+  # Max gRPC message size that can be sent
+  grpc_server_max_send_msg_size: 4194304
+
+  # Limit on the number of concurrent streams for gRPC calls (0 = unlimited)
+  grpc_server_max_concurrent_streams: 100
+
+  # Log only messages with the given severity or above. Supported values [debug,info, warn, error]
+  log_level: "info"
+
+  # Base path to server all API routes from (e.g., /v1/).
+  # http_path_prefix: <string>
+  
 positions:
+  # Location of positions file (default = "/var/log/positions.yaml")
   filename: /tmp/positions.yaml
 
+  # How often to update the positions file (default = 10s)
+  sync_period: 10s
+
 clients:
+  # The URL where Loki is listening, denoted in Loki as http_listen_address and http_listen_port. 
+  # If Loki is running in microservices mode, this is the HTTP URL for the Distributor.
   - url: http://{{ grafana_loki }}:3100/loki/api/v1/push
+
+  # Maximum amount of time to wait before sending a batch, even if that batch isn't full. (default = 1s)
+    batchwait: 1s
+
+  # Maximum batch size (in bytes) of logs to accumulate before sending the batch to Loki.
+    batchsize: 102400
+
+  # Maximum time to wait for a server to respond to a request
+    timeout: 10s
 
 scrape_configs:
   - job_name: system
@@ -30,6 +84,13 @@ scrape_configs:
           selector: '{job="nginx"}'
           stages:
           - regex:
-              expression: "(?P<error_code>.*404.*)"
+              expression: "(?P<error_code>.*404.*)" 
           - labels:
-              error_code:
+              error_code:      
+          - metrics:
+              error_total:
+                type: Counter
+                description: "total count of 404 error_code"
+                source: error_code
+                config:
+                  action: inc          
